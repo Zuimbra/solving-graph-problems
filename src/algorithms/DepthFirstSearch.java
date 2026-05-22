@@ -1,77 +1,73 @@
 package algorithms;
 
+import util.ConsoleColors;
+
+// DepthFirstSearch.java
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import graphStructure.Graph;
-import graphStructure.Node;
+import graphstruture.Graph;
+import graphstruture.Node;
 
 public class DepthFirstSearch {
+    private final Map<Node, Boolean> visited;
+    private final Map<Node, NodeState> states;
 
-    public static final String RESET = "\u001B[0m";
-    public static final String RED = "\u001B[31m";
-    public static final String GREEN = "\u001B[32m";
-    public static final String YELLOW = "\u001B[33m";
-    public static final String GREY = "\u001B[90m";
-
-    private Map<Node, Boolean> visited;
-    private Map<Node, EstadoNo> estados;
-
-    private enum EstadoNo {
-        NAO_VISITADO,
-        VISITADO,
-        EXPLORADO
+    private enum NodeState {
+        NOT_VISITED,
+        VISITED,
+        EXPLORED
     }
 
     public DepthFirstSearch() {
-        visited = new HashMap<>();
-        estados = new HashMap<>();
+        this.visited = new HashMap<>();
+        this.states = new HashMap<>();
     }
 
-    public void dfs(Graph graph, Node start, Node end, String type) throws InterruptedException {
+    public void dfsRecursive(Graph graph, Node start, Node end) throws InterruptedException {
+        initializeSearchState(graph);
+
+        Stack<Node> path = new Stack<>();
+        boolean found = searchRecursive(start, end, 0, path);
+
+        if (!found) {
+            printNoPathMessage();
+        }
+    }
+
+    public void dfsIterative(Graph graph, Node start, Node end) throws InterruptedException {
+        initializeSearchState(graph);
+        searchIterative(start, end);
+    }
+
+    private void initializeSearchState(Graph graph) {
         visited.clear();
-        estados.clear();
+        states.clear();
 
         for (Node node : graph.getNodes()) {
             visited.put(node, false);
-            estados.put(node, EstadoNo.NAO_VISITADO);
-        }
-
-        if ("recursive".equalsIgnoreCase(type)) {
-            Stack<Node> path = new Stack<>();
-
-            boolean found = dfsRecursive(start, end, 0, path);
-
-            if (!found) {
-                System.out.println("\n" + GREY + "SEM CAMINHO" + RESET);
-            }
-
-        } else if ("iterative".equalsIgnoreCase(type)) {
-            dfsIterative(graph, start, end);
-
-        } else {
-            System.out.println(RED + "Tipo inválido. Use 'recursive' ou 'iterative'." + RESET);
+            states.put(node, NodeState.NOT_VISITED);
         }
     }
 
-    private boolean dfsRecursive(Node current, Node end, int depth, Stack<Node> path) throws InterruptedException {
+    private boolean searchRecursive(Node current, Node end, int depth, Stack<Node> path) throws InterruptedException {
         visited.put(current, true);
         path.push(current);
 
-        Thread.sleep(100);
-        System.out.println("-> Visitando nó: " + GREEN + current.getValue() + RESET);
-        System.out.println(GREY + "   \\-Distância no caminho: " + depth + RESET);
+        waitStep();
+        printVisitedNode(current, depth);
 
         if (current == end) {
             printPath(path);
             return true;
         }
 
-        for (Node v : current.getAdjacentes()) {
-            if (!visited.get(v)) {
-                boolean found = dfsRecursive(v, end, depth + 1, path);
+        for (Node neighbor : current.getAdjacentNodes()) {
+            if (!visited.get(neighbor)) {
+                boolean found = searchRecursive(neighbor, end, depth + 1, path);
 
                 if (found) {
                     return true;
@@ -83,9 +79,8 @@ public class DepthFirstSearch {
         return false;
     }
 
-    private void dfsIterative(Graph graph, Node start, Node end) throws InterruptedException {
+    private void searchIterative(Node start, Node end) throws InterruptedException {
         Stack<Node> stack = new Stack<>();
-
         Map<Node, Node> parentMap = new HashMap<>();
         Map<Node, Integer> depthMap = new HashMap<>();
 
@@ -96,42 +91,76 @@ public class DepthFirstSearch {
         while (!stack.isEmpty()) {
             Node current = stack.peek();
 
-            if (estados.get(current) == EstadoNo.NAO_VISITADO) {
-                estados.put(current, EstadoNo.VISITADO);
-
-                int depth = depthMap.get(current);
-
-                Thread.sleep(100);
-                System.out.println("-> Visitando nó: " + GREEN + current.getValue() + RESET);
-                System.out.println(GREY + "   \\-Distância no caminho: " + depth + RESET);
+            if (states.get(current) == NodeState.NOT_VISITED) {
+                visitIterativeNode(current, end, stack, parentMap, depthMap);
 
                 if (current == end) {
-                    printPath(parentMap, end);
                     return;
                 }
-
-                List<Node> adjacentes = current.getAdjacentes();
-
-                for (int i = adjacentes.size() - 1; i >= 0; i--) {
-                    Node v = adjacentes.get(i);
-
-                    if (estados.get(v) == EstadoNo.NAO_VISITADO && !parentMap.containsKey(v)) {
-                        stack.push(v);
-                        parentMap.put(v, current);
-                        depthMap.put(v, depth + 1);
-                    }
-                }
-
-            } else if (estados.get(current) == EstadoNo.VISITADO) {
-                estados.put(current, EstadoNo.EXPLORADO);
+            } else if (states.get(current) == NodeState.VISITED) {
+                states.put(current, NodeState.EXPLORED);
                 stack.pop();
-
             } else {
                 stack.pop();
             }
         }
 
-        System.out.println("\n" + GREY + "SEM CAMINHO" + RESET);
+        printNoPathMessage();
+    }
+
+    private void visitIterativeNode(
+        Node current,
+        Node end,
+        Stack<Node> stack,
+        Map<Node, Node> parentMap,
+        Map<Node, Integer> depthMap
+    ) throws InterruptedException {
+        states.put(current, NodeState.VISITED);
+
+        int depth = depthMap.get(current);
+
+        waitStep();
+        printVisitedNode(current, depth);
+
+        if (current == end) {
+            printPath(parentMap, end);
+            return;
+        }
+
+        addUnvisitedNeighborsToStack(current, stack, parentMap, depthMap, depth);
+    }
+
+    private void addUnvisitedNeighborsToStack(
+        Node current,
+        Stack<Node> stack,
+        Map<Node, Node> parentMap,
+        Map<Node, Integer> depthMap,
+        int depth
+    ) {
+        List<Node> adjacentNodes = current.getAdjacentNodes();
+
+        for (int i = adjacentNodes.size() - 1; i >= 0; i--) {
+            Node neighbor = adjacentNodes.get(i);
+
+            if (states.get(neighbor) == NodeState.NOT_VISITED && !parentMap.containsKey(neighbor)) {
+                stack.push(neighbor);
+                parentMap.put(neighbor, current);
+                depthMap.put(neighbor, depth + 1);
+            }
+        }
+    }
+
+    private void waitStep() throws InterruptedException {
+        Thread.sleep(100);
+    }
+
+    private void printVisitedNode(Node node, int depth) {
+        System.out.println("-> Visitando nó: " + ConsoleColors.GREEN + node.getValue() + ConsoleColors.RESET);
+        System.out.println(ConsoleColors.GREY + " \\-Distância no caminho: " + depth + ConsoleColors.RESET);
+    }
+
+    private void printNoPathMessage() {
+        System.out.println("\n" + ConsoleColors.GREY + "SEM CAMINHO" + ConsoleColors.RESET);
     }
 
     private void printPath(Stack<Node> path) {
@@ -139,8 +168,7 @@ public class DepthFirstSearch {
 
         for (int i = 0; i < path.size(); i++) {
             Node node = path.get(i);
-
-            System.out.print(GREEN + node.getValue() + RESET);
+            System.out.print(ConsoleColors.GREEN + node.getValue() + ConsoleColors.RESET);
 
             if (i < path.size() - 1) {
                 System.out.print(" > ");
@@ -152,7 +180,6 @@ public class DepthFirstSearch {
 
     private void printPath(Map<Node, Node> parentMap, Node end) {
         Stack<Node> path = new Stack<>();
-
         Node current = end;
 
         while (current != null) {
@@ -164,8 +191,7 @@ public class DepthFirstSearch {
 
         while (!path.isEmpty()) {
             Node node = path.pop();
-
-            System.out.print(GREEN + node.getValue() + RESET);
+            System.out.print(ConsoleColors.GREEN + node.getValue() + ConsoleColors.RESET);
 
             if (!path.isEmpty()) {
                 System.out.print(" > ");
@@ -174,6 +200,4 @@ public class DepthFirstSearch {
 
         System.out.println();
     }
-
-    
 }

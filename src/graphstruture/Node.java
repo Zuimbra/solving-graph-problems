@@ -1,32 +1,34 @@
+package graphstruture;
+
+// NODE //
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-package graphStructure;
-
 public class Node {
-    private String value;
-    private List<Node> adjacentes;
+    private final String value;
+    private final List<Node> adjacentNodes;
 
     public Node(String value) {
         this.value = value;
-        this.adjacentes = new ArrayList<>();
+        this.adjacentNodes = new ArrayList<>();
     }
 
     public String getValue() {
         return value;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public List<Node> getAdjacentNodes() {
+        return Collections.unmodifiableList(adjacentNodes);
     }
 
     public List<Node> getAdjacentes() {
-        return Collections.unmodifiableList(adjacentes);
+        return getAdjacentNodes();
     }
 
-    public void addAdjacente(Node node) {
+    public void addAdjacentNode(Node node) {
         if (node == null) {
             throw new IllegalArgumentException("O nó adjacente não pode ser null.");
         }
@@ -35,25 +37,37 @@ public class Node {
             throw new IllegalArgumentException("Um nó não pode ser adjacente a ele mesmo.");
         }
 
-        if (!adjacentes.contains(node)) {
-            adjacentes.add(node);
+        if (!adjacentNodes.contains(node)) {
+            adjacentNodes.add(node);
         }
     }
 
+    public void addAdjacente(Node node) {
+        addAdjacentNode(node);
+    }
+
+    public void removeAdjacentNode(Node node) {
+        adjacentNodes.remove(node);
+    }
+
     public void removeAdjacente(Node node) {
-        adjacentes.remove(node);
+        removeAdjacentNode(node);
+    }
+
+    public boolean isAdjacentTo(Node node) {
+        return adjacentNodes.contains(node);
     }
 
     public boolean isAdjacente(Node node) {
-        return adjacentes.contains(node);
+        return isAdjacentTo(node);
     }
 
     public int degree() {
-        return adjacentes.size();
+        return adjacentNodes.size();
     }
 
     public Node get(int index) {
-        return adjacentes.get(index);
+        return adjacentNodes.get(index);
     }
 
     @Override
@@ -63,8 +77,14 @@ public class Node {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Node)) return false;
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof Node)) {
+            return false;
+        }
+
         Node node = (Node) o;
         return Objects.equals(value, node.value);
     }
@@ -73,6 +93,4 @@ public class Node {
     public int hashCode() {
         return Objects.hash(value);
     }
-
-    
 }

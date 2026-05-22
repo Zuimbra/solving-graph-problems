@@ -1,11 +1,13 @@
+package graphstruture;
+
+// GRAPH //
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-package graphStructure;
-
 public class Graph {
-    private List<Node> nodes;
+    private final List<Node> nodes;
 
     public Graph() {
         this.nodes = new ArrayList<>();
@@ -33,7 +35,7 @@ public class Graph {
         nodes.remove(node);
 
         for (Node current : nodes) {
-            current.removeAdjacente(node);
+            current.removeAdjacentNode(node);
         }
     }
 
@@ -55,6 +57,7 @@ public class Graph {
                 return node;
             }
         }
+
         return null;
     }
 
@@ -67,8 +70,8 @@ public class Graph {
             throw new IllegalArgumentException("Os dois nós precisam estar no grafo.");
         }
 
-        a.addAdjacente(b);
-        b.addAdjacente(a);
+        a.addAdjacentNode(b);
+        b.addAdjacentNode(a);
     }
 
     public void removeEdge(Node a, Node b) {
@@ -76,16 +79,20 @@ public class Graph {
             return;
         }
 
-        a.removeAdjacente(b);
-        b.removeAdjacente(a);
+        a.removeAdjacentNode(b);
+        b.removeAdjacentNode(a);
     }
 
-    public boolean isAdjacente(Node a, Node b) {
+    public boolean isAdjacent(Node a, Node b) {
         if (a == null || b == null) {
             return false;
         }
 
-        return a.isAdjacente(b);
+        return a.isAdjacentTo(b);
+    }
+
+    public boolean isAdjacente(Node a, Node b) {
+        return isAdjacent(a, b);
     }
 
     public int degree(Node node) {
@@ -103,8 +110,8 @@ public class Graph {
         for (Node node : nodes) {
             sb.append(node.getValue()).append(" -> ");
 
-            for (Node adj : node.getAdjacentes()) {
-                sb.append(adj.getValue()).append(" ");
+            for (Node adjacentNode : node.getAdjacentNodes()) {
+                sb.append(adjacentNode.getValue()).append(" ");
             }
 
             sb.append("\n");
@@ -112,5 +119,4 @@ public class Graph {
 
         return sb.toString();
     }
-    
 }
