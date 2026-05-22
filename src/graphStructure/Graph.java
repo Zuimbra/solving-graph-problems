@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+package graphStructure;
+
 public class Graph {
     private List<Node> nodes;
 
@@ -110,4 +112,5 @@ public class Graph {
 
         return sb.toString();
     }
+    
 }

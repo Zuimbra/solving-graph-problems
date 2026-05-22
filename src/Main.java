@@ -1,3 +1,7 @@
+import graphStructure.Graph;
+import graphStructure.Node;
+import algorithms.DepthFirstSearch;
+
 import java.util.*;
 
 public class Main {

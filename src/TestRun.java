@@ -1,3 +1,7 @@
+import graphStructure.Graph;
+import graphStructure.Node;
+import algorithms.DepthFirstSearch;
+
 public class TestRun {
 
     public static void main(String[] args) throws InterruptedException {

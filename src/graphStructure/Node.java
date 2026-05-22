@@ -3,6 +3,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+package graphStructure;
+
 public class Node {
     private String value;
     private List<Node> adjacentes;
@@ -71,4 +73,6 @@ public class Node {
     public int hashCode() {
         return Objects.hash(value);
     }
+
+    
 }
